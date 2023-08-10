@@ -1,7 +1,6 @@
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
-
 const axios = require('axios');
 
 
@@ -67,7 +66,7 @@ app.use('/auth/google/logout', (req, res) => {
 
 //GITHUB
 app.get(
-    '/auth/github',
+'/auth/github',
     passport.authenticate('github', { 
         scope: [ 'user:email' ]
     })
@@ -89,10 +88,37 @@ app.get('/auth/github/failure', (req, res) => {
     res.send('Gagal Login Github!');
 });
 
-app.use('/auth/google/logout', (req, res) => {
+app.use('/auth/github/logout', (req, res) => {
     req.session.destroy();
     res.send('Berhasil Logout Github!');
 });
+
+//IDCH
+app.get(
+    '/auth/idcloudhost',
+        passport.authenticate('oauth2')
+    );
+    
+    app.get('/auth/idcloudhost/callback', 
+      passport.authenticate('oauth2', {
+        successRedirect: '/auth/idcloudhost/success', 
+        failureRedirect: '/auth/idcloudhost/failure' }),
+     
+    );
+    
+    app.get('/auth/idcloudhost/success', isLoggedIn, (req, res) => {
+        let name = req.user.displayName;
+        res.send(`Hello ${name}`);
+    });
+    
+    app.get('/auth/idcloudhost/failure', (req, res) => {
+        res.send('Gagal Login IDCloudHost!');
+    });
+    
+    app.use('/auth/idcloudhost/logout', (req, res) => {
+        req.session.destroy();
+        res.send('Berhasil Logout IDCloudHost!');
+    });
 
 app.listen(5000, () => {
     console.log("Listening on port 5000. Open http://localhost:5000");
