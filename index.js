@@ -5,6 +5,7 @@ const axios = require('axios');
 
 
 const path = require('path');
+const { stat } = require('fs');
 const app = express();
 require('dotenv').config();
 
@@ -30,6 +31,10 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+function generateRandomState() {
+    return Math.random().toString(36).substring(7);
+}
 
 //GOOGLE
 function isLoggedIn(req, res, next) {
@@ -96,29 +101,34 @@ app.use('/auth/github/logout', (req, res) => {
 //IDCH
 app.get(
     '/auth/idcloudhost',
-        passport.authenticate('oauth2')
-    );
+    (req, res, next) => {
+        const state = generateRandomState(); // Generate a random state value
+        req.session.oauth2state = state; // Store the state in the session
+        passport.authenticate('oauth2', {
+            state: state // Provide the state as a parameter
+        })(req, res, next);
+    }
+);
     
-    app.get('/auth/idcloudhost/callback', 
-      passport.authenticate('oauth2', {
-        successRedirect: '/auth/idcloudhost/success', 
-        failureRedirect: '/auth/idcloudhost/failure' }),
-     
-    );
+app.get('/auth/idcloudhost/callback', 
+    passport.authenticate('oauth2', {
+    successRedirect: '/auth/idcloudhost/success', 
+    failureRedirect: '/auth/idcloudhost/failure' }),
+);
     
-    app.get('/auth/idcloudhost/success', isLoggedIn, (req, res) => {
-        let name = req.user.displayName;
-        res.send(`Hello ${name}`);
-    });
+app.get('/auth/idcloudhost/success', isLoggedIn, (req, res) => {
+    let name = req.user.displayName;
+    res.send(`Hello ${name}`);
+});
     
-    app.get('/auth/idcloudhost/failure', (req, res) => {
-        res.send('Gagal Login IDCloudHost!');
-    });
+app.get('/auth/idcloudhost/failure', (req, res) => {
+    res.send('Gagal Login IDCloudHost!');
+});
     
-    app.use('/auth/idcloudhost/logout', (req, res) => {
-        req.session.destroy();
-        res.send('Berhasil Logout IDCloudHost!');
-    });
+app.use('/auth/idcloudhost/logout', (req, res) => {
+    req.session.destroy();
+    res.send('Berhasil Logout IDCloudHost!');
+});
 
 app.listen(5000, () => {
     console.log("Listening on port 5000. Open http://localhost:5000");

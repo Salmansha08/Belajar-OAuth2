@@ -46,13 +46,14 @@ passport.use(
   */
 ));
 
+//IDCH
 passport.use(
   new OAuth2Strategy({
     authorizationURL: 'https://my.idcloudhost.com/oauth/authorize.php',
     tokenURL: 'https://my.idcloudhost.com/oauth/token.php',
     clientID: process.env.IDCH_CLIENT_ID,
     clientSecret: process.env.IDCH_CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/auth/oauth2/callback"
+    callbackURL: "http://localhost:5000/auth/idcloudhost/callback"
   },
   function(request, accessToken, refreshToken, profile, done) {
     done(null, profile);
